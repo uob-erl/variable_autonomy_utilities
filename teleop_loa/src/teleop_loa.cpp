@@ -163,7 +163,7 @@ void JoystickTeleop::publish()
 // the main function
 int main(int argc, char** argv)
 {
-        ros::init(argc, argv, "mixed_initiative_teleop");
+        ros::init(argc, argv, "teleop_loa");
         JoystickTeleop joystick_teleop;
         ros::spin();
 }
