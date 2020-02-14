@@ -82,7 +82,7 @@ void  publish();
 
 ros::NodeHandle ph_,nh_;
 
-int linear_axis_, angular_axis_, control_button_, stop_button_, auto_button_, teleop_button_;
+int linear_axis_, angular_axis_, control_button_, stop_button_, shared_button_ ,auto_button_, teleop_button_;
 double linear_scaling_, angular_scaling_;
 geometry_msgs::Twist last_msg_published_;
 boost::mutex publish_mutex_;
@@ -110,6 +110,7 @@ JoystickTeleop::JoystickTeleop() :
         ph_.param("teleop_button", teleop_button_, 3); // Y button
         ph_.param("stop_button", stop_button_, 4); // LB button
         ph_.param("auto_button", auto_button_, 0); // A button
+        ph_.param("shared_button", shared_button_, 2); //X button
         /*
          * TODO
          * Adding more buttons for different LOAs. i.e VFH+
@@ -149,6 +150,11 @@ void JoystickTeleop::joyCallback(const sensor_msgs::Joy::ConstPtr& joy)
         if (joy->buttons[auto_button_]) {
                 //mode.data=2;
                 mode.data = "Autonomy";
+                loa_pub_.publish(mode);
+        }
+        if (joy->buttons[shared_button_]) {
+                //mode.data=2;
+                mode.data = "Shared_Control";
                 loa_pub_.publish(mode);
         }
 
