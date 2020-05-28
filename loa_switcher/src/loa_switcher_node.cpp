@@ -4,6 +4,7 @@
 
 #include "ros/ros.h"
 #include "std_msgs/String.h"
+#include <string.h>
 #include <cmath>
 #include <iostream>
 #include <algorithm>
@@ -60,7 +61,7 @@ LOA_Switcher::LOA_Switcher()
     loa_pub_ = n_.advertise<std_msgs::String>("/loa",1);
 
     loa_sub_ = n_.subscribe("/loa", 5, &LOA_Switcher::loaCallback, this); // the LOA (from joystick)
-    vel_teleop_sub_ = n_.subscribe("/teleop/cmd_vel", 5, &LOA_Switcher::teleopCallback, this);
+    vel_teleop_sub_ = n_.subscribe("/delayed_teleop/cmd_vel", 5, &LOA_Switcher::teleopCallback, this);
     vel_shared_sub_ = n_.subscribe("/shared_control/cmd_vel", 5, &LOA_Switcher::sharedCallback, this);// velocity coming from the teleoperation (Joystick)
     vel_nav_sub_ = n_.subscribe("/navigation/cmd_vel",5, &LOA_Switcher::navCallback, this); // velocity from the navigation e.g. move_base
     mi_controller_sub_ = n_.subscribe("/loa_change", 5, &LOA_Switcher::miCommandCallback, this); // MI controller LOA change command
@@ -69,6 +70,7 @@ LOA_Switcher::LOA_Switcher()
 // reads control mode topic to inform class internal variable
 void LOA_Switcher::loaCallback(const std_msgs::String::ConstPtr& msg)
 {
+
     if (int flag =! 1){
 
               valid_loa_ = false;
@@ -76,14 +78,13 @@ void LOA_Switcher::loaCallback(const std_msgs::String::ConstPtr& msg)
               flag = 1;
       }
 
-
-    if (msg->data == "Stop")
+    if (msg->data == "Stop" && loa_ != "Stop")
     {
         loa_ = "Stop";
         valid_loa_ = true;
         ROS_INFO("Stop robot");
     }
-    else if (msg->data == "Teleoperation")
+    else if (msg->data == "Teleoperation" && loa_ != "Teleoperation")
     {
         loa_ = "Teleoperation";
         valid_loa_ = true;
@@ -92,7 +93,7 @@ void LOA_Switcher::loaCallback(const std_msgs::String::ConstPtr& msg)
         vel_for_robot_pub_.publish(cmd_vel_for_robot_); // solves bug in which last auto msg if propagated in teleop
         ROS_INFO("Control mode: Teleoperation");
     }
-    else if (msg->data == "Autonomy")
+    else if (msg->data == "Autonomy" && loa_ != "Autonomy")
       //case 2
     {
         loa_ = "Autonomy";
@@ -102,7 +103,7 @@ void LOA_Switcher::loaCallback(const std_msgs::String::ConstPtr& msg)
         vel_for_robot_pub_.publish(cmd_vel_for_robot_); // solves bug in which last teleop msg if propagated in auto
         ROS_INFO("Control mode: Autonomy");
     }
-    else if (msg->data == "Shared_Control")
+    else if (msg->data == "Shared_Control" && loa_ != "Shared_Control")
     {
         loa_ = "Shared_Control";
         valid_loa_ = true;
@@ -111,6 +112,8 @@ void LOA_Switcher::loaCallback(const std_msgs::String::ConstPtr& msg)
         vel_for_robot_pub_.publish(cmd_vel_for_robot_); // solves bug in which last teleop msg if propagated in auto
         ROS_INFO("Control mode: Shared_Control");
     }
+
+//    ROS_INFO("Control mode: %s", loa_.c_str());
 
 }
 
